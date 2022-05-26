@@ -72,6 +72,7 @@ BEGIN_MESSAGE_MAP(CBOTDRDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_FILE_CHIOCE, &CBOTDRDlg::OnBnClickedButtonFileChioce)
 	ON_BN_CLICKED(IDC_BUTTON_POWER_DRAW, &CBOTDRDlg::OnBnClickedButtonPowerDraw)
 	ON_BN_CLICKED(IDC_BUTTON_SETUP, &CBOTDRDlg::OnBnClickedButtonSetup)
+	ON_BN_CLICKED(IDC_BUTTON_ADD_AVERAGE, &CBOTDRDlg::OnBnClickedButtonAddAverage)
 	ON_BN_CLICKED(IDC_BUTTON_LM_OVERALL, &CBOTDRDlg::OnBnClickedButtonLmOverall)
 	ON_BN_CLICKED(IDC_BUTTON_LM_SINGLE, &CBOTDRDlg::OnBnClickedButtonLmSingle)
 	ON_WM_DESTROY()
@@ -84,6 +85,7 @@ END_MESSAGE_MAP()
 void CBOTDRDlg::System_Init()
 {
 	Chart_Init();
+	Data_Init();
 }
 
 void CBOTDRDlg::Chart_Init()
@@ -166,10 +168,53 @@ void CBOTDRDlg::Chart_Init()
 
 void CBOTDRDlg::Data_Init()
 {
+	int dain = 0;
+	AdAvThread = new thread[FIR_CL];
+	ThreadResult = new double* [FIR_CL];
+	ThreadFileIfs = new ifstream* [FIR_CL];
+	while (dain< FIR_CL)
+	{
+		ThreadResult[dain] = new double[underline];
+		ThreadFileIfs[dain] = new ifstream[underline];
+		dain++;
+	}
+	dain = 0;
+	ThreadStrData = new string[FIR_CL];
+	ThreadUselessData = new string[FIR_CL];
+	ThreadFileNumber = new int[FIR_CL];
 }
 
 void CBOTDRDlg::Data_Delete()
 {
+	int dade = 0;
+	delete[] AdAvThread;
+	while (dade < FIR_CL)
+	{
+		delete[] ThreadResult[dade];
+		delete[] ThreadFileIfs[dade];
+		dade++;
+	}
+	delete[] ThreadResult;
+	delete[] ThreadFileIfs;
+	delete[] ThreadStrData;
+	delete[] ThreadUselessData;
+	delete[] ThreadFileNumber;
+}
+
+void CBOTDRDlg::Chart_Draw(CChartCtrl pChart, double* x, double* y, TChartString pTitle, int pPointNumber)
+{
+	TChartString msTitle = pTitle;    //图表标题
+	CChartTitle* mpTitle = m_ChartLmSingle.GetTitle();
+	mpTitle->AddString(msTitle);
+	mpTitle->SetColor(RGB(255, 255, 255));
+
+	CChartLineSerie* pLineSerie1 = nullptr;
+	pChart.RemoveAllSeries();
+	pLineSerie1 = pChart.CreateLineSerie();
+	pLineSerie1->SetSeriesOrdering(poNoOrdering);//设置为无序
+	pLineSerie1->AddPoints(x, y, pPointNumber);
+
+	pChart.EnableRefresh(true);
 }
 
 void CBOTDRDlg::Thread_Func(int XC)
@@ -181,13 +226,13 @@ void CBOTDRDlg::Thread_Func(int XC)
 			ThreadFileNumber[XC] = XC * FIR_WJGS + u * underline + b;//文件名称初始化
 			/*确定需要处理的文件并将其导入文件数据流*/
 			if ((ThreadFileNumber[XC]) < 10)
-				ThreadFileIfs[XC][b].open(m_BeginAddAvgPath + source2 + (to_string(ThreadFileNumber[XC])) + (gs), ios::in);
+				ThreadFileIfs[XC][b].open(m_BeginAddAvgPath + source2 + (to_string(ThreadFileNumber[XC])) + (FileType), ios::in);
 			else if (((ThreadFileNumber[XC]) >= 10) && ((ThreadFileNumber[XC]) <= 99))
-				ThreadFileIfs[XC][b].open(m_BeginAddAvgPath + source1 + (to_string(ThreadFileNumber[XC])) + (gs), ios::in);
+				ThreadFileIfs[XC][b].open(m_BeginAddAvgPath + source1 + (to_string(ThreadFileNumber[XC])) + (FileType), ios::in);
 			else if (((ThreadFileNumber[XC]) > 99) && ((ThreadFileNumber[XC]) <= 999))
-				ThreadFileIfs[XC][b].open(m_BeginAddAvgPath + source0 + (to_string(ThreadFileNumber[XC])) + (gs), ios::in);
+				ThreadFileIfs[XC][b].open(m_BeginAddAvgPath + source0 + (to_string(ThreadFileNumber[XC])) + (FileType), ios::in);
 			else
-				ThreadFileIfs[XC][b].open(m_BeginAddAvgPath + source3 + (to_string(ThreadFileNumber[XC])) + (gs), ios::in);
+				ThreadFileIfs[XC][b].open(m_BeginAddAvgPath + source3 + (to_string(ThreadFileNumber[XC])) + (FileType), ios::in);
 		}
 		/*跳过前三行无效数据*/
 		for (int b = 0; b < underline; b++)
@@ -213,41 +258,38 @@ void CBOTDRDlg::Thread_Func(int XC)
 
 void CBOTDRDlg::Add_Average(int add)
 {
-	string SJ;
-	for (int add = 0; add < 22; add++)
+	
+	Frenum = 500 + add * 5;//计算当前频率点
+	StrFrequency = to_string(Frenum);//将频率点转化为字符串
+
+	SetBeginAddAvgPath(("\\11") + StrFrequency + ("\\C411") + StrFrequency);
+	SetEndAddAvgPath("\\result\\11");
+	//打开文件写入数据
+	ofstream outFile;
+	outFile.open(m_EndAddAvgPath + StrFrequency + FileType, ios::out);
+
+	/*设置8个线程，将第一次累加处理函数作为线程入口*/
+	for (int xcs = 0;xcs < FIR_CL;xcs++)
 	{
-		int sj = 500 + add * 5;//计算当前频率点
-		SJ = to_string(sj);//将频率点转化为字符串
-
-		SetBeginAddAvgPath(("\\11") + SJ + ("\\C411") + SJ);
-		SetEndAddAvgPath("\\result\\11");
-		//打开文件写入数据
-		ofstream outFile;
-		outFile.open(m_EndAddAvgPath + SJ + gs, ios::out);
-
-		/*设置8个线程，将第一次累加处理函数作为线程入口*/
-		thread* X_C = new thread[FIR_CL];
-		for (int xcs = 0;xcs < FIR_CL;xcs++)
-		{
-			X_C[xcs] = thread(&CBOTDRDlg::Thread_Func,this,xcs);
-		}
-		for (int xcs = 0;xcs < FIR_CL;xcs++)
-		{
-			X_C[xcs].join();
-		}
-
-		for (int j = 0; j < DATA_GS; j++)//循环次数为每个文件包含的数据个数，进行累加处理
-		{
-			for (int k = 0; k < FIR_CL; k++)
-			{
-				AddAverageResult += ThreadResult[k][j];
-				ThreadResult[k][j] = 0;
-			}
-			outFile << AddAverageResult << endl;
-			AddAverageResult = 0;
-		}
-		outFile.close();//关闭文件
+		AdAvThread[xcs] = thread(&CBOTDRDlg::Thread_Func,this,xcs);
 	}
+	for (int xcs = 0;xcs < FIR_CL;xcs++)
+	{
+		AdAvThread[xcs].join();
+	}
+
+	for (int j = 0; j < DATA_GS; j++)//循环次数为每个文件包含的数据个数，进行累加处理
+	{
+		for (int k = 0; k < FIR_CL; k++)
+		{
+			AddAverageResult += ThreadResult[k][j];
+			ThreadResult[k][j] = 0;
+		}
+		AddAverageResult /= DATA_WJZS;
+		outFile << AddAverageResult << endl;
+		AddAverageResult = 0;
+	}
+	outFile.close();//关闭文件
 }
 
 BOOL CBOTDRDlg::OnInitDialog()
@@ -340,7 +382,7 @@ HCURSOR CBOTDRDlg::OnQueryDragIcon()
 void CBOTDRDlg::OnBnClickedButtonFileChioce()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	char FilePath[MAX_PATH];     //存放选择的目录路径 
+	char FilePath[1000];     //存放选择的目录路径 
 	CString Getpath;
 	string BgPath;
 	ZeroMemory(FilePath, sizeof(FilePath));
@@ -357,7 +399,7 @@ void CBOTDRDlg::OnBnClickedButtonFileChioce()
 	LPITEMIDLIST lp = SHBrowseForFolder(&bi);
 	if (lp && SHGetPathFromIDList(lp, (LPWSTR)FilePath))
 	{
-		Getpath.Format(_T("%s"), FilePath);
+		Getpath.Format(_T("%s"), (LPWSTR)FilePath);
 		SetDlgItemText(IDC_EDIT_FILE_PATH, Getpath);
 		BgPath = CT2A(Getpath.GetBuffer());
 		SetBasicPath(BgPath);
@@ -370,6 +412,7 @@ void CBOTDRDlg::OnBnClickedButtonFileChioce()
 
 void CBOTDRDlg::OnBnClickedButtonPowerDraw()
 {
+	//Chart_Draw();
 	// TODO: 在此添加控件通知处理程序代码
 }
 
@@ -379,6 +422,15 @@ void CBOTDRDlg::OnBnClickedButtonSetup()
 	// TODO: 在此添加控件通知处理程序代码
 }
 
+void CBOTDRDlg::OnBnClickedButtonAddAverage()
+{
+	string SJ;
+	for (int add = 0; add < 22; add++)
+	{
+		Add_Average(add);
+	}
+	// TODO: 在此添加控件通知处理程序代码
+}
 
 void CBOTDRDlg::OnBnClickedButtonLmOverall()
 {
@@ -403,7 +455,11 @@ void CBOTDRDlg::OnSysExit()
 
 void CBOTDRDlg::OnDestroy()
 {
+	Data_Delete();
 	CDialogEx::OnDestroy();
 	// TODO: 在此处添加消息处理程序代码
 }
+
+
+
 

@@ -34,25 +34,29 @@ protected:
 	CChartCtrl m_ChartLmOverall;
 	CChartCtrl m_ChartPower;
 
-	//数据处理参数
-	double AddAverageResult = 0;//累加平均最终结果
-
-	double ThreadResult[FIR_CL][DATA_GS];//线程的累加结果
-	ifstream ThreadFileIfs[FIR_CL][underline];//线程的文件流句柄，最多允许创建500个！
-	string ThreadStrData[FIR_CL];//线程中读取到的字符串数据
-	string ThreadUselessData[FIR_CL];//线程中跳过的前三行无用数据
-	int ThreadFileNumber[FIR_CL];//线程中用于标记文件序号
-
-	string m_BasicPath;
-	string m_BeginAddAvgPath;
-	string m_EndAddAvgPath;
 
 	/*初始数据文件名*/
+	string m_BasicPath="";
+	string m_BeginAddAvgPath="";
+	string m_EndAddAvgPath="";
 	string source0 = "00";
 	string source1 = "000";
 	string source2 = "0000";
 	string source3 = "0";
-	string gs = ".csv";
+	string FileType = ".csv";
+	string StrFrequency="";
+	int Frenum = 0;
+
+	//数据处理参数
+	double AddAverageResult = 0;//累加平均最终结果
+	thread* AdAvThread = nullptr;//线程
+	double** ThreadResult = nullptr;//线程的累加结果
+	ifstream** ThreadFileIfs = nullptr;//线程的文件流句柄，最多允许创建500个！
+	string* ThreadStrData = nullptr;//线程中读取到的字符串数据
+	string* ThreadUselessData = nullptr;//线程中跳过的前三行无用数据
+	int* ThreadFileNumber = nullptr;//线程中用于标记文件序号
+
+	
 
 public:
 	void SetBasicPath(string pBasicPath)
@@ -71,6 +75,7 @@ public:
 	void Chart_Init();
 	void Data_Init();
 	void Data_Delete();
+	void Chart_Draw(CChartCtrl pChart, double* x, double* y, TChartString pTitle, int pPointNumber);
 	void Thread_Func(int XC);
 	void Add_Average(int add);
 // 实现
@@ -87,8 +92,10 @@ public:
 	afx_msg void OnBnClickedButtonFileChioce();
 	afx_msg void OnBnClickedButtonPowerDraw();
 	afx_msg void OnBnClickedButtonSetup();
+	afx_msg void OnBnClickedButtonAddAverage();
 	afx_msg void OnBnClickedButtonLmOverall();
 	afx_msg void OnBnClickedButtonLmSingle();
 	afx_msg void OnDestroy();
 	afx_msg void OnSysExit();
+
 };
