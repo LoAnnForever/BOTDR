@@ -131,10 +131,10 @@ void CBOTDRDlg::Chart_Init()
 	LOpLeftAxis->GetLabel()->SetColor(RGB(255, 255, 255));
 
 	CChartAxis* LOpBottomAxis = m_ChartLmOverall.CreateStandardAxis(CChartCtrl::BottomAxis);
-	LOpBottomAxis->SetMinMax(0,2000);
+	LOpBottomAxis->SetMinMax(0, DATA_GS * 0.4);
 	LOpBottomAxis->SetTextColor(RGB(255, 255, 255));
 	LOpBottomAxis->SetAxisColor(RGB(255, 255, 255));
-	LOpBottomAxis->GetLabel()->SetText(_T("distance")); //右轴label
+	LOpBottomAxis->GetLabel()->SetText(_T("Distance")); //右轴label
 	LOpBottomAxis->GetLabel()->SetColor(RGB(255, 255, 255));
 
 	/*****************************功率曲线绘制窗口初始化***********************************/
@@ -147,17 +147,17 @@ void CBOTDRDlg::Chart_Init()
 	PpTitle->SetColor(RGB(255, 255, 255));
 
 	CChartAxis* PpLeftAxis = m_ChartPower.CreateStandardAxis(CChartCtrl::LeftAxis);
-	PpLeftAxis->SetMinMax(3750, 3950);
+	PpLeftAxis->SetMinMax(0, 3);
 	PpLeftAxis->SetTextColor(RGB(255, 255, 255));
 	PpLeftAxis->SetAxisColor(RGB(255, 255, 255));
 	PpLeftAxis->GetLabel()->SetText(_T("Power"));  //左轴label
 	PpLeftAxis->GetLabel()->SetColor(RGB(255, 255, 255));
 
 	CChartAxis* PpBottomAxis = m_ChartPower.CreateStandardAxis(CChartCtrl::BottomAxis);
-	PpBottomAxis->SetMinMax(0, 2000);
+	PpBottomAxis->SetMinMax(0, DATA_GS * 0.4);
 	PpBottomAxis->SetTextColor(RGB(255, 255, 255));
 	PpBottomAxis->SetAxisColor(RGB(255, 255, 255));
-	PpBottomAxis->GetLabel()->SetText(_T("distance")); //右轴label
+	PpBottomAxis->GetLabel()->SetText(_T("Distance")); //右轴label
 	PpBottomAxis->GetLabel()->SetColor(RGB(255, 255, 255));
 
 	/*********界面刷新**********/
@@ -169,19 +169,26 @@ void CBOTDRDlg::Chart_Init()
 void CBOTDRDlg::Data_Init()
 {
 	int dain = 0;
-	AdAvThread = new thread[FIR_CL];
+	AdAvThread = new thread[FIR_CL]();
 	ThreadResult = new double* [FIR_CL];
 	ThreadFileIfs = new ifstream* [FIR_CL];
-	while (dain< FIR_CL)
+	while (dain < FIR_CL)
 	{
-		ThreadResult[dain] = new double[underline];
-		ThreadFileIfs[dain] = new ifstream[underline];
+		ThreadResult[dain] = new double[DATA_GS]();
+		ThreadFileIfs[dain] = new ifstream[underline]();
 		dain++;
 	}
 	dain = 0;
-	ThreadStrData = new string[FIR_CL];
-	ThreadUselessData = new string[FIR_CL];
-	ThreadFileNumber = new int[FIR_CL];
+	ThreadStrData = new string[FIR_CL]();
+	ThreadUselessData = new string[FIR_CL]();
+	ThreadFileNumber = new int[FIR_CL]();
+	LineDistance = new double[DATA_GS]();
+	while (dain< DATA_GS)
+	{
+		LineDistance[dain] = dain * 0.4;
+		dain++;
+	}
+	dain = 0;
 }
 
 void CBOTDRDlg::Data_Delete()
@@ -194,25 +201,45 @@ void CBOTDRDlg::Data_Delete()
 		delete[] ThreadFileIfs[dade];
 		dade++;
 	}
+	dade = 0;
 	delete[] ThreadResult;
 	delete[] ThreadFileIfs;
 	delete[] ThreadStrData;
 	delete[] ThreadUselessData;
 	delete[] ThreadFileNumber;
+	delete[] LineDistance;
+
 }
 
-void CBOTDRDlg::Chart_Draw(CChartCtrl pChart, double* x, double* y, TChartString pTitle, int pPointNumber)
+void CBOTDRDlg::Chart_Draw(CChartCtrl &pChart, double* x, double* y, double xMin, double xMax,double yMin, double yMax, 
+							TChartString pTitle, int pPointNumber,const TChartString pYtitle,const TChartString pXtitle)
 {
 	TChartString msTitle = pTitle;    //图表标题
-	CChartTitle* mpTitle = m_ChartLmSingle.GetTitle();
+	CChartTitle* mpTitle = pChart.GetTitle();
+	mpTitle->RemoveAll();
 	mpTitle->AddString(msTitle);
 	mpTitle->SetColor(RGB(255, 255, 255));
 
-	CChartLineSerie* pLineSerie1 = nullptr;
-	pChart.RemoveAllSeries();
-	pLineSerie1 = pChart.CreateLineSerie();
-	pLineSerie1->SetSeriesOrdering(poNoOrdering);//设置为无序
-	pLineSerie1->AddPoints(x, y, pPointNumber);
+	CChartAxis* mpLeftAxis = pChart.CreateStandardAxis(CChartCtrl::LeftAxis);
+	mpLeftAxis->SetMinMax(yMin, yMax);
+	mpLeftAxis->SetTextColor(RGB(255, 255, 255));
+	mpLeftAxis->SetAxisColor(RGB(255, 255, 255));
+	mpLeftAxis->GetLabel()->SetText(pYtitle);  //左轴label
+	mpLeftAxis->GetLabel()->SetColor(RGB(255, 255, 255));
+
+	CChartAxis* mpBottomAxis = pChart.CreateStandardAxis(CChartCtrl::BottomAxis);
+	mpBottomAxis->SetMinMax(xMin, xMax);
+	mpBottomAxis->SetTextColor(RGB(255, 255, 255));
+	mpBottomAxis->SetAxisColor(RGB(255, 255, 255));
+	mpBottomAxis->GetLabel()->SetText(pXtitle); //右轴label
+	mpBottomAxis->GetLabel()->SetColor(RGB(255, 255, 255));
+
+	CChartLineSerie* pLineSerie = nullptr;
+	//pChart.RemoveAllSeries();
+	pLineSerie = pChart.CreateLineSerie();
+	pLineSerie->SetSeriesOrdering(poNoOrdering);//设置为无序
+	pLineSerie->AddPoints(x, y, pPointNumber);
+	pLineSerie->SetColor(RGB(255,0,0));
 
 	pChart.EnableRefresh(true);
 }
@@ -225,8 +252,10 @@ void CBOTDRDlg::Thread_Func(int XC)
 		{
 			ThreadFileNumber[XC] = XC * FIR_WJGS + u * underline + b;//文件名称初始化
 			/*确定需要处理的文件并将其导入文件数据流*/
-			if ((ThreadFileNumber[XC]) < 10)
+			if ((ThreadFileNumber[XC]) < 10) {
+				string sh = m_BeginAddAvgPath + source2 + (to_string(ThreadFileNumber[XC])) + (FileType);
 				ThreadFileIfs[XC][b].open(m_BeginAddAvgPath + source2 + (to_string(ThreadFileNumber[XC])) + (FileType), ios::in);
+			}
 			else if (((ThreadFileNumber[XC]) >= 10) && ((ThreadFileNumber[XC]) <= 99))
 				ThreadFileIfs[XC][b].open(m_BeginAddAvgPath + source1 + (to_string(ThreadFileNumber[XC])) + (FileType), ios::in);
 			else if (((ThreadFileNumber[XC]) > 99) && ((ThreadFileNumber[XC]) <= 999))
@@ -254,21 +283,12 @@ void CBOTDRDlg::Thread_Func(int XC)
 		for (int d = 0; d < underline; d++)
 			ThreadFileIfs[XC][d].close();
 	}
+	return;
 }
 
-void CBOTDRDlg::Add_Average(int add)
+void CBOTDRDlg::Add_Average()
 {
-	
-	Frenum = 500 + add * 5;//计算当前频率点
-	StrFrequency = to_string(Frenum);//将频率点转化为字符串
-
-	SetBeginAddAvgPath(("\\11") + StrFrequency + ("\\C411") + StrFrequency);
-	SetEndAddAvgPath("\\result\\11");
-	//打开文件写入数据
-	ofstream outFile;
-	outFile.open(m_EndAddAvgPath + StrFrequency + FileType, ios::out);
-
-	/*设置8个线程，将第一次累加处理函数作为线程入口*/
+	/*设置线程，将第一次累加处理函数作为线程入口*/
 	for (int xcs = 0;xcs < FIR_CL;xcs++)
 	{
 		AdAvThread[xcs] = thread(&CBOTDRDlg::Thread_Func,this,xcs);
@@ -277,19 +297,14 @@ void CBOTDRDlg::Add_Average(int add)
 	{
 		AdAvThread[xcs].join();
 	}
+}
 
-	for (int j = 0; j < DATA_GS; j++)//循环次数为每个文件包含的数据个数，进行累加处理
-	{
-		for (int k = 0; k < FIR_CL; k++)
-		{
-			AddAverageResult += ThreadResult[k][j];
-			ThreadResult[k][j] = 0;
-		}
-		AddAverageResult /= DATA_WJZS;
-		outFile << AddAverageResult << endl;
-		AddAverageResult = 0;
-	}
-	outFile.close();//关闭文件
+void CBOTDRDlg::Gyh()
+{
+}
+
+void CBOTDRDlg::Gyh_Get_Beginvalue()
+{
 }
 
 BOOL CBOTDRDlg::OnInitDialog()
@@ -390,7 +405,7 @@ void CBOTDRDlg::OnBnClickedButtonFileChioce()
 	bi.hwndOwner = m_hWnd;
 	bi.pidlRoot = NULL;
 	bi.pszDisplayName = (LPWSTR)FilePath;
-	bi.lpszTitle = _T("请选择处理结果存储路径");
+	bi.lpszTitle = _T("请选择数据路径");
 	bi.ulFlags = 0;
 	bi.lpfn = NULL;
 	bi.lParam = 0;
@@ -412,6 +427,36 @@ void CBOTDRDlg::OnBnClickedButtonFileChioce()
 
 void CBOTDRDlg::OnBnClickedButtonPowerDraw()
 {
+	CString CFre;
+	double pXmin = 0, pXmax = DATA_GS*0.4, pYmin = 0, pYmax = 0;
+	string PowerDrawStr = "";
+	double* PowerDraw = new double[DATA_GS]();;//储存功率的数组
+	
+	GetDlgItemText(IDC_EDIT_POWER_FREQUENCY, CFre);
+	string Fre = CT2A(CFre.GetBuffer());
+	SetPowerPath("\\result\\" + Fre + FileType);
+	ifstream Frequency_Power_File;
+	Frequency_Power_File.open(m_PowerPath, ios::in);
+
+	getline(Frequency_Power_File, PowerDrawStr);
+	PowerDraw[0] = stod(PowerDrawStr);//累加计算
+	pYmin = PowerDraw[0];
+	pYmax = PowerDraw[0];
+	for (int i = 1; i < DATA_GS; i++)
+	{
+		getline(Frequency_Power_File, PowerDrawStr);
+		PowerDraw[i] = stod(PowerDrawStr);//累加计算
+		if (pYmin > PowerDraw[i])
+			pYmin = PowerDraw[i];
+		if (pYmax < PowerDraw[i])
+			pYmax = PowerDraw[i];
+	}
+	TChartString pPTitle = CFre + _T("MHz功率图");    //图表标题
+	TChartString pXtitle = _T("Power");    //图表标题
+	TChartString pYtitle = _T("Distance");    //图表标题
+	Chart_Draw(m_ChartPower, LineDistance, PowerDraw, pXmin, pXmax, pYmin-0.015, pYmax+0.015, pPTitle, DATA_GS, pYtitle, pXtitle);
+	Frequency_Power_File.close();
+	delete[] PowerDraw;
 	//Chart_Draw();
 	// TODO: 在此添加控件通知处理程序代码
 }
@@ -419,17 +464,53 @@ void CBOTDRDlg::OnBnClickedButtonPowerDraw()
 
 void CBOTDRDlg::OnBnClickedButtonSetup()
 {
+	Begin_Fre = GetDlgItemInt(IDC_EDIT_BEGIN_FREQUENCY);
+	End_Fre = GetDlgItemInt(IDC_EDIT_END_FREQUENCY);
+	Fres_Number = (End_Fre - Begin_Fre) / 5 + 1;
+	SetDlgItemInt(IDC_EDIT_LMPOINT_NUMBER,Fres_Number);
 	// TODO: 在此添加控件通知处理程序代码
 }
 
 void CBOTDRDlg::OnBnClickedButtonAddAverage()
 {
-	string SJ;
-	for (int add = 0; add < 22; add++)
+	
+	for (int add = 0; add < Fres_Number; add++)
 	{
-		Add_Average(add);
+		StartTime = clock();
+		CWaitCursor wait;
+		Frenum = Begin_Fre - 11000 + add * 5;//计算当前频率点
+		StrFrequency = to_string(Frenum);//将频率点转化为字符串
+		SetBeginAddAvgPath("\\11" + StrFrequency + "\\C411" + StrFrequency);
+		SetEndAddAvgPath("\\result\\11");
+		//打开文件写入数据
+		ofstream outFile;
+		outFile.open(m_EndAddAvgPath + StrFrequency + FileType, ios::out);
+		Add_Average();
+		for (int j = 0; j < DATA_GS; j++)//循环次数为每个文件包含的数据个数，进行累加处理
+		{
+			for (int k = 0; k < FIR_CL; k++)
+			{
+				AddAverageResult += ThreadResult[k][j];
+				ThreadResult[k][j] = 0;
+			}
+			AddAverageResult /= DATA_WJZS;
+			outFile << AddAverageResult << endl;
+			AddAverageResult = 0;
+		}
+		outFile.close();//关闭文件
+		FinishTime = clock();//程序结束时间
+		TotalTime = (double)(FinishTime - StartTime) / CLOCKS_PER_SEC;//计算程序运行时间
+		m_Message += ("11" + StrFrequency + "已累加平均处理完成\r\n耗时：" + to_string(TotalTime) + "秒\r\n").c_str();
+		//实时显示在信息窗口上
+		SetDlgItemText(IDC_EDIT_MESSAGE_VIEW, m_Message);
+		CEdit* pedit = (CEdit*)GetDlgItem(IDC_EDIT_MESSAGE_VIEW);
+		int nline = pedit->GetLineCount();
+		pedit->LineScroll(nline - 1);
+
+		wait.~CWaitCursor();
+		UpdateWindow();
 	}
-	// TODO: 在此添加控件通知处理程序代码
+	m_Message = _T("累加平均处理已完成！");
 }
 
 void CBOTDRDlg::OnBnClickedButtonLmOverall()

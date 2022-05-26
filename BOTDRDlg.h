@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "framework.h"
 #include "ChartCtrl/ChartCtrl.h"
 #include "ChartCtrl/ChartAxisLabel.h"
 #include "ChartCtrl/ChartLineSerie.h"
@@ -33,21 +34,27 @@ protected:
 	CChartCtrl m_ChartLmSingle;
 	CChartCtrl m_ChartLmOverall;
 	CChartCtrl m_ChartPower;
-
+	CString m_Message = _T("");
 
 	/*初始数据文件名*/
-	string m_BasicPath="";
-	string m_BeginAddAvgPath="";
-	string m_EndAddAvgPath="";
+	string m_BasicPath = "";
+	string m_BeginAddAvgPath = "";
+	string m_EndAddAvgPath = "";
+	string m_PowerPath = "";
 	string source0 = "00";
 	string source1 = "000";
 	string source2 = "0000";
 	string source3 = "0";
 	string FileType = ".csv";
-	string StrFrequency="";
+	string StrFrequency = "";
 	int Frenum = 0;
+	int Begin_Fre = 0;
+	int End_Fre = 0;
+	int Fres_Number = 0;
 
 	//数据处理参数
+	clock_t StartTime = 0, FinishTime = 0;
+	double TotalTime = 0;
 	double AddAverageResult = 0;//累加平均最终结果
 	thread* AdAvThread = nullptr;//线程
 	double** ThreadResult = nullptr;//线程的累加结果
@@ -55,8 +62,7 @@ protected:
 	string* ThreadStrData = nullptr;//线程中读取到的字符串数据
 	string* ThreadUselessData = nullptr;//线程中跳过的前三行无用数据
 	int* ThreadFileNumber = nullptr;//线程中用于标记文件序号
-
-	
+	double* LineDistance = nullptr;//存放距离信息
 
 public:
 	void SetBasicPath(string pBasicPath)
@@ -71,13 +77,20 @@ public:
 	{
 		m_EndAddAvgPath = m_BasicPath + pEndAddAvgPath;
 	}
+	void SetPowerPath(string pPowerPath)
+	{
+		m_PowerPath = m_BasicPath + pPowerPath;
+	}
 	void System_Init();
 	void Chart_Init();
 	void Data_Init();
 	void Data_Delete();
-	void Chart_Draw(CChartCtrl pChart, double* x, double* y, TChartString pTitle, int pPointNumber);
+	void Chart_Draw(CChartCtrl &pChart, double* x, double* y, double xMin, double xMax, double yMin, double yMax, 
+					TChartString pTitle, int pPointNumber, const TChartString pYtitle,const TChartString pXtitle);
 	void Thread_Func(int XC);
-	void Add_Average(int add);
+	void Add_Average();
+	void Gyh();
+	void Gyh_Get_Beginvalue();
 // 实现
 protected:
 	HICON m_hIcon;
