@@ -73,6 +73,7 @@ BEGIN_MESSAGE_MAP(CBOTDRDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_POWER_DRAW, &CBOTDRDlg::OnBnClickedButtonPowerDraw)
 	ON_BN_CLICKED(IDC_BUTTON_SETUP, &CBOTDRDlg::OnBnClickedButtonSetup)
 	ON_BN_CLICKED(IDC_BUTTON_ADD_AVERAGE, &CBOTDRDlg::OnBnClickedButtonAddAverage)
+	ON_BN_CLICKED(IDC_BUTTON_GYH, &CBOTDRDlg::OnBnClickedButtonGyh)
 	ON_BN_CLICKED(IDC_BUTTON_LM_OVERALL, &CBOTDRDlg::OnBnClickedButtonLmOverall)
 	ON_BN_CLICKED(IDC_BUTTON_LM_SINGLE, &CBOTDRDlg::OnBnClickedButtonLmSingle)
 	ON_WM_DESTROY()
@@ -81,13 +82,16 @@ END_MESSAGE_MAP()
 
 
 // CBOTDRDlg 消息处理程序
+/******************************==================自定义函数========================**************************************/
 
+/*************************系统初始化*********************************/
 void CBOTDRDlg::System_Init()
 {
 	Chart_Init();
 	Data_Init();
 }
 
+/*************************曲线绘制窗口初始化*********************************/
 void CBOTDRDlg::Chart_Init()
 {
 	/*****************************LM单点拟合窗口初始化***********************************/
@@ -166,9 +170,11 @@ void CBOTDRDlg::Chart_Init()
 	m_ChartPower.EnableRefresh(true);
 }
 
+/*************************系统数据内存分配与初始化*********************************/
 void CBOTDRDlg::Data_Init()
 {
 	int dain = 0;
+	//累加平均数据内存分配
 	AdAvThread = new thread[FIR_CL]();
 	ThreadResult = new double* [FIR_CL];
 	ThreadFileIfs = new ifstream* [FIR_CL];
@@ -189,11 +195,26 @@ void CBOTDRDlg::Data_Init()
 		dain++;
 	}
 	dain = 0;
+
+	//归一化数据内存分配
+	GyhFileIfs = new ifstream[SPGS]();
+	GyhStrData = new string* [SPGS];
+	GyhResult = new double* [SPGS];
+	while (dain < SPGS)
+	{
+		GyhStrData[dain] = new string[DATA_GS]();
+		GyhResult[dain] = new double[DATA_GS]();
+		dain++;
+	}
+	dain = 0;
+	
 }
 
+/*************************系统数据内存释放*********************************/
 void CBOTDRDlg::Data_Delete()
 {
 	int dade = 0;
+	//累加平均数据内存释放
 	delete[] AdAvThread;
 	while (dade < FIR_CL)
 	{
@@ -209,8 +230,22 @@ void CBOTDRDlg::Data_Delete()
 	delete[] ThreadFileNumber;
 	delete[] LineDistance;
 
+	//归一化数据内存分配
+	delete[] GyhFileIfs;
+	while (dade < SPGS)
+	{
+		delete[] GyhStrData[dade];
+		delete[] GyhResult[dade];
+		dade++;
+	}
+	dade = 0;
+	delete[] GyhStrData;
+	delete[] GyhResult;
+
+
 }
 
+/*************************绘制曲线*********************************/
 void CBOTDRDlg::Chart_Draw(CChartCtrl &pChart, double* x, double* y, double xMin, double xMax,double yMin, double yMax, 
 							TChartString pTitle, int pPointNumber,const TChartString pYtitle,const TChartString pXtitle)
 {
@@ -244,6 +279,7 @@ void CBOTDRDlg::Chart_Draw(CChartCtrl &pChart, double* x, double* y, double xMin
 	pChart.EnableRefresh(true);
 }
 
+/*************************线程累加处理函数*********************************/
 void CBOTDRDlg::Thread_Func(int XC)
 {
 	for (int u = 0;u < (int)(FIR_WJGS / underline);u++)
@@ -286,6 +322,7 @@ void CBOTDRDlg::Thread_Func(int XC)
 	return;
 }
 
+/*************************累加平均*********************************/
 void CBOTDRDlg::Add_Average()
 {
 	/*设置线程，将第一次累加处理函数作为线程入口*/
@@ -299,12 +336,60 @@ void CBOTDRDlg::Add_Average()
 	}
 }
 
+/*************************归一化*********************************/
 void CBOTDRDlg::Gyh()
 {
-}
-
-void CBOTDRDlg::Gyh_Get_Beginvalue()
-{
+	double Lin = Gyh_Get_Beginvalue(center_fre, wigh_fre, 11900 / 1000);
+	vector<double> GyhFind(SPGS, 0);//用于归一化处理中的查找
+	
+	/*进行数据导入，循环次数为需要处理的频率点个数*/
+	
+	for (int a = 0; a < SPGS; a++)
+	{
+		Frenum = SPKS - 11300 + a * 5;//计算当前频率点
+		StrFrequency = to_string(Frenum);//将频率点转化为字符串
+		GyhResult[a][0] = SPKS + 5 * a;
+		SetBeginGyhPath("\\result\\11" + StrFrequency);
+		GyhFileIfs[a].open(m_BeginGyhPath + FileType);
+	}
+	SetEndGyhPath("\\result\\Gyhresult\\");
+	for (int b = 0;b < 2;b++)
+	{
+		ofstream outFile;
+		outFile.open(m_EndGyhPath + to_string((b + 1) * 1000) + "-已归一化_0.4m" + to_string(SPGS) + FileType, ios::out);
+		for (int c = DGL * b; c < DGL * b + DGL; c++)//第3个循环，循环次数为每个文件包含的数据个数，进行数据转换处理
+		{
+			for (int d = 0; d < SPGS; d++)
+			{
+				getline(GyhFileIfs[d], GyhStrData[d][c]);
+				GyhFind[d] = (stod(GyhStrData[d][c])) * (-1) + 2000;//  
+			}
+			auto max_fre = max_element(GyhFind.begin(), GyhFind.end());
+			auto min_fre = min_element(GyhFind.begin(), GyhFind.end());
+			long double Max = GyhFind[max_fre - GyhFind.begin()];
+			long double Min = GyhFind[min_fre - GyhFind.begin()];
+			for (int d = 0;d < SPGS;d++)
+			{
+				GyhFind[d] = Lin + (((GyhFind[d] - Min) / (Max - Min)) * (1.0000 - Lin));
+				GyhResult[d][c + 1] = GyhFind[d];
+			}
+		}
+		for (int e = 0; e < SPGS; e++)//第3个循环，循环次数为每个文件包含的数据个数，进行数据转换处理
+		{
+			outFile << GyhResult[e][0] << ',';
+			for (int f = DGL * b; f < DGL * b + DGL; f++)
+			{
+				outFile << GyhResult[e][f] << ',';
+			}
+			outFile << endl;
+		}
+		outFile.close();//关闭文件
+	}
+	for (int j = 0; j < SPGS; j++)
+	{
+		GyhFileIfs[j].clear();
+		GyhFileIfs[j].close();
+	}
 }
 
 BOOL CBOTDRDlg::OnInitDialog()
@@ -392,11 +477,12 @@ HCURSOR CBOTDRDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+/******************************==================控件和窗口消息处理========================**************************************/
 
-
+/*************************原始数据文件路径选取*********************************/
 void CBOTDRDlg::OnBnClickedButtonFileChioce()
 {
-	// TODO: 在此添加控件通知处理程序代码
+
 	char FilePath[1000];     //存放选择的目录路径 
 	CString Getpath;
 	string BgPath;
@@ -424,7 +510,7 @@ void CBOTDRDlg::OnBnClickedButtonFileChioce()
 	// TODO: 在此添加控件通知处理程序代码
 }
 
-
+/*************************功率曲线绘制*********************************/
 void CBOTDRDlg::OnBnClickedButtonPowerDraw()
 {
 	CString CFre;
@@ -455,13 +541,14 @@ void CBOTDRDlg::OnBnClickedButtonPowerDraw()
 	TChartString pXtitle = _T("Power");    //图表标题
 	TChartString pYtitle = _T("Distance");    //图表标题
 	Chart_Draw(m_ChartPower, LineDistance, PowerDraw, pXmin, pXmax, pYmin-0.015, pYmax+0.015, pPTitle, DATA_GS, pYtitle, pXtitle);
+	Frequency_Power_File.clear();
 	Frequency_Power_File.close();
 	delete[] PowerDraw;
 	//Chart_Draw();
 	// TODO: 在此添加控件通知处理程序代码
 }
 
-
+/*************************参数设置*********************************/
 void CBOTDRDlg::OnBnClickedButtonSetup()
 {
 	Begin_Fre = GetDlgItemInt(IDC_EDIT_BEGIN_FREQUENCY);
@@ -471,6 +558,7 @@ void CBOTDRDlg::OnBnClickedButtonSetup()
 	// TODO: 在此添加控件通知处理程序代码
 }
 
+/*************************累加平均处理*********************************/
 void CBOTDRDlg::OnBnClickedButtonAddAverage()
 {
 	
@@ -510,8 +598,28 @@ void CBOTDRDlg::OnBnClickedButtonAddAverage()
 		wait.~CWaitCursor();
 		UpdateWindow();
 	}
-	m_Message = _T("累加平均处理已完成！");
+	m_Message = _T("累加平均处理已完成！\r\n");
 }
+
+/*************************归一化处理*********************************/
+void CBOTDRDlg::OnBnClickedButtonGyh()
+{
+	StartTime = clock();
+	CWaitCursor wait;
+	Gyh();
+	FinishTime = clock();//程序结束时间
+	TotalTime = (double)(FinishTime - StartTime) / CLOCKS_PER_SEC;//计算程序运行时间
+	m_Message += ("已归一化处理完成\r\n耗时：" + to_string(TotalTime) + "秒\r\n").c_str();
+	//实时显示在信息窗口上
+	SetDlgItemText(IDC_EDIT_MESSAGE_VIEW, m_Message);
+	CEdit* pedit = (CEdit*)GetDlgItem(IDC_EDIT_MESSAGE_VIEW);
+	int nline = pedit->GetLineCount();
+	pedit->LineScroll(nline - 1);
+	wait.~CWaitCursor();
+	UpdateWindow();
+	// TODO: 在此添加控件通知处理程序代码
+}
+
 
 void CBOTDRDlg::OnBnClickedButtonLmOverall()
 {
@@ -540,6 +648,8 @@ void CBOTDRDlg::OnDestroy()
 	CDialogEx::OnDestroy();
 	// TODO: 在此处添加消息处理程序代码
 }
+
+
 
 
 
