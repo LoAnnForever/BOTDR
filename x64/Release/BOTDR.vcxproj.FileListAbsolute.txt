@@ -1,0 +1,18 @@
+F:\BOTDR-2022-09-10\x64\Release\BOTDR.exe
+E:\BOTDR-2022-09-10\x64\Release\BOTDR.exe
+E:\BOTDR-1_5 - 副本\x64\Release\BOTDR.exe
+E:\BOTDR-1_6\x64\Release\BOTDR.exe
+E:\BOTDR-2_3(功能基本实现)\x64\Release\BOTDR.exe
+E:\BOTDR-2_4(修复小BUG)\x64\Release\BOTDR.exe
+E:\BOTDR-ing\x64\Release\BOTDR.exe
+E:\BOTDRSystem\BOTDRCODE\BOTDR-(3_0)含保存文件\x64\Release\BOTDR.exe
+F:\BOTDR\BOTDRCODE\BOTDR-(3_0)含保存文件\x64\Release\BOTDR.exe
+E:\BOTDR-(3_0)含保存文件\x64\Release\BOTDR.exe
+E:\BOTDRSystem\BOTDRCODE\BOTDR-(3_1_1)完整版\x64\Release\BOTDR.exe
+E:\BOTDRSystem\BOTDRCODE\BOTDR-(3_1_1)完整版 - 副本\x64\Release\BOTDR.exe
+E:\BOTDRSystem\BOTDRCODE\BOTDR-ING\x64\Release\BOTDR.exe
+F:\BOTDR\BOTDRCODE\BOTDR-ING\x64\Release\BOTDR.exe
+F:\BOTDR\BOTDRCODE\BOTDR-(4_1_1)包含删除数据库功能\x64\Release\BOTDR.exe
+F:\BOTDR\BOTDRCODE\BOTDR-(4_1_1)包含删除数据库功能 - 副本\x64\Release\BOTDR.exe
+C:\Users\Administrator\Desktop\BOTDR-ING\x64\Release\BOTDR.exe
+F:\BOTDR\jixiang\BOTDR-ING\x64\Release\BOTDR.exe

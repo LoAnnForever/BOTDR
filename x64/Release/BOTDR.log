@@ -1,0 +1,61 @@
+﻿  pch.cpp
+  BOTDR.cpp
+  BOTDRDlg.cpp
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(948,2): warning C4244: “参数”: 从“unsigned __int64”转换到“unsigned int”，可能丢失数据
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1085,19): warning C4838: 从“int”转换到“char”需要收缩转换
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1085,19): warning C4309: “初始化”: 截断常量值
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1085,29): warning C4838: 从“int”转换到“char”需要收缩转换
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1085,29): warning C4309: “初始化”: 截断常量值
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1085,49): warning C4838: 从“int”转换到“char”需要收缩转换
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1085,49): warning C4309: “初始化”: 截断常量值
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1086,19): warning C4838: 从“int”转换到“char”需要收缩转换
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1086,19): warning C4309: “初始化”: 截断常量值
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1086,29): warning C4838: 从“int”转换到“char”需要收缩转换
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1086,29): warning C4309: “初始化”: 截断常量值
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1086,39): warning C4838: 从“int”转换到“char”需要收缩转换
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1086,39): warning C4309: “初始化”: 截断常量值
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1086,49): warning C4838: 从“int”转换到“char”需要收缩转换
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1086,49): warning C4309: “初始化”: 截断常量值
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1119,14): warning C4244: “=”: 从“double”转换到“unsigned int”，可能丢失数据
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1179,103): warning C4244: “参数”: 从“unsigned __int64”转换到“unsigned int”，可能丢失数据
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1199,21): warning C4018: “<”: 有符号/无符号不匹配
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(1208,24): warning C4244: “=”: 从“__int64”转换到“long”，可能丢失数据
+  ChartAxis.cpp
+F:\BOTDR\jixiang\BOTDR-ING\ChartCtrl\ChartAxis.cpp(305,64): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+F:\BOTDR\jixiang\BOTDR-ING\ChartCtrl\ChartAxis.cpp(315,73): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+  ChartAxisLabel.cpp
+  ChartBarSerie.cpp
+  ChartCandlestickSerie.cpp
+  ChartCrossHairCursor.cpp
+  ChartCtrl.cpp
+  ChartCursor.cpp
+  ChartDateTimeAxis.cpp
+  ChartDragLineCursor.cpp
+  ChartFont.cpp
+  ChartGanttSerie.cpp
+  ChartGradient.cpp
+  ChartGrid.cpp
+  ChartLegend.cpp
+  ChartLineSerie.cpp
+  ChartLogarithmicAxis.cpp
+  ChartPointsSerie.cpp
+  ChartScrollBar.cpp
+  正在编译...
+  ChartSerie.cpp
+  ChartStandardAxis.cpp
+  ChartSurfaceSerie.cpp
+  ChartTitle.cpp
+F:\BOTDR\jixiang\BOTDR-ING\ChartCtrl\ChartTitle.cpp(122,62): warning C4267: “参数”: 从“size_t”转换到“const int”，可能丢失数据
+F:\BOTDR\jixiang\BOTDR-ING\ChartCtrl\ChartTitle.cpp(176,62): warning C4267: “参数”: 从“size_t”转换到“const int”，可能丢失数据
+  ChartXYSerie.cpp
+  stdafx.cpp
+  QT_IMPORT.cpp
+  Serial.cpp
+F:\BOTDR\jixiang\BOTDR-ING\Serial.cpp(1010,5): warning C4267: “参数”: 从“size_t”转换到“DWORD”，可能丢失数据
+F:\BOTDR\jixiang\BOTDR-ING\Serial.cpp(1165,5): warning C4267: “参数”: 从“size_t”转换到“DWORD”，可能丢失数据
+  正在生成代码
+  Previous IPDB not found, fall back to full compilation.
+F:\BOTDR\jixiang\BOTDR-ING\BOTDRDlg.cpp(967): warning C4715: “CBOTDRDlg::StdIni”: 不是所有的控件路径都返回值
+  All 2524 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  已完成代码的生成
+  BOTDR.vcxproj -> F:\BOTDR\jixiang\BOTDR-ING\x64\Release\BOTDR.exe
