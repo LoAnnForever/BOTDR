@@ -1,3 +1,3 @@
 # BOTDR
 BOTDR上位机软件
-已生成可执行文件位于 BOTDR/x64/Release/BOTDR.exe
+BOTDR/x64/Release/中的可执行文件未上传成功，后续更新
